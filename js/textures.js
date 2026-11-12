@@ -14,7 +14,6 @@ function makeCanvasTex(drawFn, repeatX = 1, repeatY = 1) {
 }
 
 export function createProceduralTextures() {
-    // 1. Металлическая обшивка базы с заклепками и полосой опасности
     const metal = makeCanvasTex((ctx, w, h) => {
         ctx.fillStyle = '#3a4454';
         ctx.fillRect(0, 0, w, h);
@@ -28,9 +27,8 @@ export function createProceduralTextures() {
         ctx.stroke();
 
         ctx.fillStyle = '#7a8a9e';
-        const rivetCoords =;
-        for (const rx of rivetCoords) {
-            for (const ry of) {
+        for (let rx = 12; rx <= 116; rx += 104) {
+            for (let ry = 12; ry <= 96; ry += 28) {
                 ctx.beginPath();
                 ctx.arc(rx, ry, 3.5, 0, Math.PI * 2);
                 ctx.fill();
@@ -50,7 +48,6 @@ export function createProceduralTextures() {
         }
     });
 
-    // 2. Почва джунглей с травой сверху
     const ground = makeCanvasTex((ctx, w, h) => {
         ctx.fillStyle = '#4e331e';
         ctx.fillRect(0, 0, w, h);
@@ -66,7 +63,6 @@ export function createProceduralTextures() {
         }
     }, 2, 1);
 
-    // 3. Военный камуфляж для формы бойцов
     const camo = makeCanvasTex((ctx, w, h) => {
         ctx.fillStyle = '#2d4c2b';
         ctx.fillRect(0, 0, w, h);
@@ -79,7 +75,6 @@ export function createProceduralTextures() {
         }
     });
 
-    // 4. Кибер-стена заднего фона
     const cyberWall = makeCanvasTex((ctx, w, h) => {
         ctx.fillStyle = '#121624';
         ctx.fillRect(0, 0, w, h);
