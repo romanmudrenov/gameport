@@ -1,85 +1,64 @@
-#mobile-debug {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: rgba(180, 0, 0, 0.95);
-    color: #fff;
-    padding: 12px;
-    font-size: 13px;
-    z-index: 9999;
-    white-space: pre-wrap;
-}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CYBER CONTRA 3D</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <script>
+        window.addEventListener('error', function(e) {
+            var box = document.getElementById('mobile-debug');
+            if (box) {
+                box.style.display = 'block';
+                box.innerText += 'ОШИБКА: ' + (e.message || 'Не найден файл ' + (e.target.src || e.target.href)) + '\n';
+            }
+        }, true);
+    </script>
+</head>
+<body>
 
-#touch-controls {
-    position: fixed;
-    bottom: 18px;
-    left: 16px;
-    right: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    z-index: 15;
-    pointer-events: none;
-}
+    <div id="mobile-debug"></div>
 
-.dpad {
-    position: relative;
-    width: 150px;
-    height: 150px;
-    pointer-events: auto;
-}
+    <div id="hud">
+        <div class="hud-box">
+            <div class="lives" id="lives-display">HP: ♥ ♥ ♥ ♥ ♥</div>
+            <div class="weapon-badge" id="weapon-display">ОРУЖИЕ: RIFLE [АВТО]</div>
+        </div>
+        <div class="hud-box right">
+            <div class="score" id="score-display">SCORE: 00000</div>
+            <div class="weapon-badge" id="music-status">SYNTH: ON</div>
+        </div>
+    </div>
 
-.action-btns {
-    display: flex;
-    gap: 14px;
-    pointer-events: auto;
-    margin-bottom: 15px;
-}
+    <div id="boss-bar-container">
+        <div id="boss-bar-label">ЯДРО БАЗЫ ОМЕГА</div>
+        <div id="boss-bar"></div>
+    </div>
 
-.t-btn {
-    background: rgba(255, 255, 255, 0.18);
-    border: 2px solid rgba(255, 255, 255, 0.45);
-    color: #fff;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    touch-action: none;
-}
+    <div id="touch-controls">
+        <div class="dpad">
+            <div class="t-btn up" data-key="ArrowUp">▲</div>
+            <div class="t-btn left" data-key="ArrowLeft">◀</div>
+            <div class="t-btn right" data-key="ArrowRight">▶</div>
+            <div class="t-btn down" data-key="ArrowDown">▼</div>
+        </div>
+        <div class="action-btns">
+            <div class="t-btn fire" data-key="KeyJ">ОГОНЬ</div>
+            <div class="t-btn jump" data-key="Space">ПРЫЖОК</div>
+        </div>
+    </div>
 
-.t-btn:active, .t-btn.active {
-    background: rgba(255, 51, 51, 0.65);
-    border-color: #ffdd44;
-}
+    <div id="overlay">
+        <h1 id="overlay-title">CYBER CONTRA 3D</h1>
+        <div class="subtitle" id="overlay-sub">MOBILE + PC EDITION</div>
+        <div class="controls-card">
+            <div>На телефоне: используй сенсорный геймпад!</div>
+            <div>На ПК: <span class="key">WASD</span> + <span class="key">SPACE</span> + <span class="key">J</span></div>
+        </div>
+        <button id="start-btn">НАЧАТЬ ШТУРМ</button>
+    </div>
 
-.dpad .t-btn {
-    position: absolute;
-    width: 48px;
-    height: 48px;
-    font-size: 20px;
-}
-
-.dpad .up { top: 0; left: 51px; }
-.dpad .down { bottom: 0; left: 51px; }
-.dpad .left { top: 51px; left: 0; }
-.dpad .right { top: 51px; right: 0; }
-
-.action-btns .t-btn {
-    width: 74px;
-    height: 74px;
-    border-radius: 50%;
-    font-size: 13px;
-}
-
-.t-btn.fire {
-    background: rgba(255, 50, 50, 0.35);
-    border-color: #ff5555;
-}
-
-.t-btn.jump {
-    background: rgba(50, 180, 255, 0.35);
-    border-color: #44ddff;
-}
+    <script src="https://cloudflare.com"></script>
+    <script type="module" src="./js/main.js"></script>
+</body>
+</html>
