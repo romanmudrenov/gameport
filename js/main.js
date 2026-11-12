@@ -48,7 +48,6 @@ window.addEventListener('keydown', e => {
 
 window.addEventListener('keyup', e => { input.keys[e.code] = false; });
 
-// Подключение сенсорных кнопок для телефона
 document.querySelectorAll('.t-btn').forEach(btn => {
     const code = btn.getAttribute('data-key');
 
