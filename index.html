@@ -11,10 +11,8 @@
             if (!box) return;
             box.style.display = 'block';
             if (e.message) {
-                var file = e.filename ? e.filename.split('/').pop() : 'скрипт';
-                box.innerText += 'ОШИБКА в [' + file + ':' + e.lineno + ']: ' + e.message + '\n';
-            } else if (e.target && (e.target.src || e.target.href)) {
-                box.innerText += 'Не загрузился: ' + (e.target.src || e.target.href) + '\n';
+                var file = e.filename ? e.filename.split('/').pop() : 'script';
+                box.innerText += 'ОШИБКА [' + file + ':' + e.lineno + ']: ' + e.message + '\n';
             }
         }, true);
     </script>
@@ -56,14 +54,33 @@
         <h1 id="overlay-title">CYBER CONTRA 3D</h1>
         <div class="subtitle" id="overlay-sub">MOBILE + PC EDITION</div>
         <div class="controls-card">
-            <div>На телефоне: поверни экран горизонтально!</div>
+            <div>Поверни телефон горизонтально и жми старт!</div>
             <div>На ПК: <span class="key">WASD</span> + <span class="key">SPACE</span> + <span class="key">J</span></div>
         </div>
         <button id="start-btn">НАЧАТЬ ШТУРМ</button>
     </div>
 
-    <!-- Зеркало unpkg.com (работает без блокировок Cloudflare) -->
-    <script src="https://unpkg.com"></script>
-    <script type="module" src="./js/main.js"></script>
+    <script>
+        (function() {
+            var cdnList = [
+                'https://' + 'cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js',
+                'https://' + '://unpkg.com'
+            ];
+            function loadThree(idx) {
+                if (idx >= cdnList.length) return;
+                var s = document.createElement('script');
+                s.src = cdnList[idx];
+                s.onload = function() {
+                    var m = document.createElement('script');
+                    m.type = 'module';
+                    m.src = './js/main.js?v=' + Date.now();
+                    document.body.appendChild(m);
+                };
+                s.onerror = function() { loadThree(idx + 1); };
+                document.head.appendChild(s);
+            }
+            loadThree(0);
+        })();
+    </script>
 </body>
 </html>
