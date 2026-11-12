@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYBER CONTRA 3D</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div id="hud">
+        <div class="hud-box">
+            <div class="lives" id="lives-display">HP: ♥ ♥ ♥ ♥ ♥</div>
+            <div class="weapon-badge" id="weapon-display">ОРУЖИЕ: RIFLE [АВТО]</div>
+        </div>
+        <div class="hud-box right">
+            <div class="score" id="score-display">SCORE: 00000</div>
+            <div class="weapon-badge" id="music-status">SYNTH: ON (Клавиша M)</div>
+        </div>
+    </div>
+
+    <div id="boss-bar-container">
+        <div id="boss-bar-label">ЯДРО БАЗЫ ОМЕГА</div>
+        <div id="boss-bar"></div>
+    </div>
+
+    <div id="overlay">
+        <h1 id="overlay-title">CYBER CONTRA 3D</h1>
+        <div class="subtitle" id="overlay-sub">MODULAR ENGINE + WEB AUDIO SYNTH</div>
+        <div class="controls-card">
+            <div><span class="key">A</span> / <span class="key">D</span> или <span class="key">←</span> / <span class="key">→</span> — Бег</div>
+            <div><span class="key">W</span> / <span class="key">↑</span> — Прицел вверх / диагональ</div>
+            <div><span class="key">S</span> / <span class="key">↓</span> — Прицел вниз в прыжке / Присесть</div>
+            <div><span class="key">SPACE</span> — Прыжок &nbsp;|&nbsp; <span class="key">J</span> / <span class="key">Z</span> / <span class="key">ЛКМ</span> — Огонь</div>
+            <div><span class="key">M</span> — Вкл/Выкл синтезатор</div>
+        </div>
+        <button id="start-btn">НАЧАТЬ ШТУРМ</button>
+    </div>
+
+    <!-- Глобальная библиотека Three.js -->
+    <script src="https://cloudflare.com"></script>
+    <!-- Главный системный модуль -->
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
