@@ -20,35 +20,57 @@ scene.add(dirLight);
 
 scene.add(player.mesh);
 
-const input = {
-    keys: {},
-    mouseDown: false
-};
-
+const input = { keys: {}, mouseDown: false };
 let gameState = 'menu';
 let lastTime = performance.now();
+
+function triggerJump() {
+    if (gameState !== 'playing') return;
+    const down = input.keys['KeyS'] || input.keys['ArrowDown'];
+    if (down && player.onGround && player.y > 1.5) {
+        player.y -= 0.35;
+        player.onGround = false;
+    } else if (player.onGround) {
+        player.vy = 13.8;
+        player.onGround = false;
+        synth.sfxJump();
+    }
+}
 
 window.addEventListener('keydown', e => {
     input.keys[e.code] = true;
     if (e.code === 'KeyM') synth.toggleMute();
-
-    if (e.code === 'Space' && gameState === 'playing') {
+    if (e.code === 'Space') {
         e.preventDefault();
-        const down = input.keys['KeyS'] || input.keys['ArrowDown'];
-        if (down && player.onGround && player.y > 1.5) {
-            player.y -= 0.35;
-            player.onGround = false;
-        } else if (player.onGround) {
-            player.vy = 13.8;
-            player.onGround = false;
-            synth.sfxJump();
-        }
+        triggerJump();
     }
 });
 
 window.addEventListener('keyup', e => { input.keys[e.code] = false; });
-window.addEventListener('mousedown', () => { input.mouseDown = true; });
-window.addEventListener('mouseup', () => { input.mouseDown = false; });
+
+// Подключение сенсорных кнопок для телефона
+document.querySelectorAll('.t-btn').forEach(btn => {
+    const code = btn.getAttribute('data-key');
+
+    const press = e => {
+        e.preventDefault();
+        btn.classList.add('active');
+        input.keys[code] = true;
+        if (code === 'Space') triggerJump();
+    };
+
+    const release = e => {
+        e.preventDefault();
+        btn.classList.remove('active');
+        input.keys[code] = false;
+    };
+
+    btn.addEventListener('touchstart', press, { passive: false });
+    btn.addEventListener('touchend', release, { passive: false });
+    btn.addEventListener('touchcancel', release, { passive: false });
+    btn.addEventListener('mousedown', press);
+    btn.addEventListener('mouseup', release);
+});
 
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -79,7 +101,8 @@ function endGame(victory) {
     btn.innerText = 'СЫГРАТЬ СНОВА';
 }
 
-function startGame() {
+function startGame(e) {
+    if (e) e.preventDefault();
     synth.init();
     synth.startMusic();
     buildLevel(scene);
@@ -89,7 +112,9 @@ function startGame() {
     gameState = 'playing';
 }
 
-document.getElementById('start-btn').addEventListener('click', startGame);
+const startBtn = document.getElementById('start-btn');
+startBtn.addEventListener('click', startGame);
+startBtn.addEventListener('touchstart', startGame, { passive: false });
 
 function animate(now) {
     requestAnimationFrame(animate);
