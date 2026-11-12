@@ -8,9 +8,13 @@
     <script>
         window.addEventListener('error', function(e) {
             var box = document.getElementById('mobile-debug');
-            if (box) {
-                box.style.display = 'block';
-                box.innerText += 'ОШИБКА: ' + (e.message || 'Не найден файл ' + (e.target.src || e.target.href)) + '\n';
+            if (!box) return;
+            box.style.display = 'block';
+            if (e.message) {
+                var file = e.filename ? e.filename.split('/').pop() : 'скрипт';
+                box.innerText += 'ОШИБКА в [' + file + ':' + e.lineno + ']: ' + e.message + '\n';
+            } else if (e.target && (e.target.src || e.target.href)) {
+                box.innerText += 'Не загрузился: ' + (e.target.src || e.target.href) + '\n';
             }
         }, true);
     </script>
@@ -52,13 +56,14 @@
         <h1 id="overlay-title">CYBER CONTRA 3D</h1>
         <div class="subtitle" id="overlay-sub">MOBILE + PC EDITION</div>
         <div class="controls-card">
-            <div>На телефоне: используй сенсорный геймпад!</div>
+            <div>На телефоне: поверни экран горизонтально!</div>
             <div>На ПК: <span class="key">WASD</span> + <span class="key">SPACE</span> + <span class="key">J</span></div>
         </div>
         <button id="start-btn">НАЧАТЬ ШТУРМ</button>
     </div>
 
-    <script src="https://cloudflare.com"></script>
+    <!-- Зеркало unpkg.com (работает без блокировок Cloudflare) -->
+    <script src="https://unpkg.com"></script>
     <script type="module" src="./js/main.js"></script>
 </body>
 </html>
