@@ -1,6 +1,7 @@
 import { synth } from './audio.js';
 import { createCommandoMesh } from './models.js';
 import { world, LEVEL_LENGTH } from './level.js';
+import { fireBullet, spawnExplosion, updateWorldCombat } from './combat.js';
 
 export const player = {
     mesh: createCommandoMesh(false),
@@ -11,10 +12,11 @@ export const player = {
 };
 
 export function resetPlayer() {
-    Object.assign(player, {
-        x: 0, y: 2, vx: 0, vy: 0, facing: 1,
-        lives: 5, score: 0, weapon: 'rifle', invuln: 1.5
-    });
+    player.x = 0; player.y = 2;
+    player.vx = 0; player.vy = 0;
+    player.facing = 1; player.lives = 5;
+    player.score = 0; player.weapon = 'rifle';
+    player.invuln = 1.5;
     updateHUD();
 }
 
@@ -26,43 +28,15 @@ export function updateHUD() {
         player.weapon === 'spread' ? 'ОРУЖИЕ: [S] SPREAD GUN' : 'ОРУЖИЕ: RIFLE [АВТО]';
 }
 
-export function spawnExplosion(scene, x, y, count = 16, color = 0xff6600) {
-    for (let i = 0; i < count; i++) {
-        const s = 0.15 + Math.random() * 0.25;
-        const mesh = new THREE.Mesh(
-            new THREE.BoxGeometry(s, s, s),
-            new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? color : 0xffff44 })
-        );
-        mesh.position.set(x, y, (Math.random() - 0.5) * 1.2);
-        scene.add(mesh);
-        world.particles.push({
-            mesh,
-            vx: (Math.random() - 0.5) * 14,
-            vy: (Math.random() - 0.2) * 14,
-            vz: (Math.random() - 0.5) * 8,
-            life: 0.5
-        });
-    }
-}
-
-export function fireBullet(scene, x, y, angle, isEnemy, isSpread = false) {
-    const speed = isEnemy ? 10.5 : 24;
-    const count = isSpread ? 5 : 1;
-    for (let k = 0; k < count; k++) {
-        const a = angle + (isSpread ? (k - 2) * 0.12 : 0);
-        const mesh = new THREE.Mesh(
-            new THREE.SphereGeometry(isSpread || isEnemy ? 0.22 : 0.15, 8, 8),
-            new THREE.MeshBasicMaterial({ color: isEnemy ? 0xffaa00 : (isSpread ? 0xff3333 : 0x44ffff) })
-        );
-        mesh.position.set(x, y, 0);
-        scene.add(mesh);
-        world.bullets.push({
-            mesh, x, y,
-            vx: Math.cos(a) * speed,
-            vy: Math.sin(a) * speed,
-            isEnemy, life: 2.2
-        });
-    }
+export function damagePlayer(scene, onEndGame) {
+    if (player.invuln > 0) return;
+    player.lives--;
+    player.weapon = 'rifle';
+    player.invuln = 2.0;
+    synth.sfxHit();
+    spawnExplosion(scene, player.x, player.y + 1, 12, 0xff2222);
+    updateHUD();
+    if (player.lives <= 0) onEndGame(false);
 }
 
 function getAimAngle(keys) {
@@ -75,17 +49,6 @@ function getAimAngle(keys) {
         return horiz ? (player.facing === 1 ? -Math.PI / 4 : -(3 * Math.PI) / 4) : -Math.PI / 2;
     }
     return player.facing === 1 ? 0 : Math.PI;
-}
-
-function damagePlayer(scene, onEndGame) {
-    if (player.invuln > 0) return;
-    player.lives--;
-    player.weapon = 'rifle';
-    player.invuln = 2.0;
-    synth.sfxHit();
-    spawnExplosion(scene, player.x, player.y + 1, 12, 0xff2222);
-    updateHUD();
-    if (player.lives <= 0) onEndGame(false);
 }
 
 export function updateSimulation(dt, scene, camera, input, onEndGame) {
@@ -158,112 +121,5 @@ export function updateSimulation(dt, scene, camera, input, onEndGame) {
     camera.position.z = 15.5;
     camera.lookAt(camera.position.x + 1, camera.position.y - 0.8, 0);
 
-    for (let i = world.powerups.length - 1; i >= 0; i--) {
-        const pw = world.powerups[i];
-        pw.time += dt * 3;
-        pw.mesh.position.y = pw.baseY + Math.sin(pw.time) * 0.45;
-        pw.mesh.rotation.y += dt * 2.5;
-        if (Math.hypot(player.x - pw.x, (player.y + 1) - pw.mesh.position.y) < 1.3) {
-            player.weapon = 'spread'; player.score += 500;
-            synth.sfxPowerup();
-            spawnExplosion(scene, pw.x, pw.mesh.position.y, 12, 0xffff00);
-            scene.remove(pw.mesh); world.powerups.splice(i, 1); updateHUD();
-        }
-    }
-
-    for (let i = 0; i < world.enemies.length; i++) {
-        const e = world.enemies[i];
-        const dist = Math.abs(e.x - player.x);
-        if (dist > 26) continue;
-        if (e.type === 'soldier') {
-            e.x += e.vx * dt;
-            if (e.x < e.patrolMin) e.vx = Math.abs(e.vx);
-            if (e.x > e.patrolMax) e.vx = -Math.abs(e.vx);
-            e.mesh.position.x = e.x;
-            e.mesh.rotation.y = e.vx > 0 ? 0 : Math.PI;
-            e.animTime += dt * 10;
-            e.mesh.userData.leftLeg.rotation.z = Math.sin(e.animTime) * 0.55;
-            e.mesh.userData.rightLeg.rotation.z = -Math.sin(e.animTime) * 0.55;
-            e.cooldown -= dt;
-            if (e.cooldown <= 0 && dist < 16) {
-                e.cooldown = 1.8;
-                const d = player.x > e.x ? 0 : Math.PI;
-                fireBullet(scene, e.x + (player.x > e.x ? 0.8 : -0.8), e.y + 1.4, d, true);
-            }
-            if (Math.abs(player.x - e.x) < 0.75 && Math.abs(player.y - e.y) < 1.5) damagePlayer(scene, onEndGame);
-        }
-        if (e.type === 'turret') {
-            const ang = Math.atan2((player.y + 1) - e.y, player.x - e.x);
-            e.barrelPivot.rotation.z = ang;
-            e.cooldown -= dt;
-            if (e.cooldown <= 0 && dist < 18) {
-                e.cooldown = 1.6;
-                fireBullet(scene, e.x + Math.cos(ang), e.y + Math.sin(ang), ang, true);
-            }
-        }
-    }
-
-    if (world.boss && Math.abs(world.boss.x - player.x) < 24) {
-        const b = world.boss;
-        document.getElementById('boss-bar-container').style.display = 'block';
-        b.phaseTime += dt * 4;
-        b.core.scale.setScalar(1 + Math.sin(b.phaseTime) * 0.12);
-        b.cooldown -= dt;
-        if (b.cooldown <= 0) {
-            b.cooldown = 1.15;
-            const ang = Math.atan2((player.y + 1) - 6.8, player.x - b.x);
-            fireBullet(scene, b.x, 6.8, ang - 0.12, true);
-            fireBullet(scene, b.x, 6.8, ang + 0.12, true);
-        }
-    }
-
-    for (let i = world.bullets.length - 1; i >= 0; i--) {
-        const b = world.bullets[i];
-        b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
-        b.mesh.position.set(b.x, b.y, 0);
-        let hit = false;
-
-        if (b.isEnemy) {
-            const pH = player.crouching ? 1.1 : 1.9;
-            if (Math.abs(b.x - player.x) < 0.45 && b.y >= player.y && b.y <= player.y + pH) {
-                damagePlayer(scene, onEndGame); hit = true;
-            }
-        }
-        if (!b.isEnemy) {
-            for (let j = world.enemies.length - 1; j >= 0; j--) {
-                const e = world.enemies[j];
-                const hy = e.type === 'soldier' ? e.y + 1.1 : e.y;
-                if (Math.hypot(b.x - e.x, b.y - hy) < 0.95) {
-                    e.hp--; hit = true; spawnExplosion(scene, b.x, b.y, 4, 0xffaa00);
-                    if (e.hp <= 0) {
-                        synth.sfxExplosion(); spawnExplosion(scene, e.x, hy, 20, 0xff4400);
-                        scene.remove(e.mesh); world.enemies.splice(j, 1);
-                        player.score += e.type === 'turret' ? 300 : 150; updateHUD();
-                    }
-                    break;
-                }
-            }
-            if (!hit && world.boss && Math.hypot(b.x - world.boss.x, b.y - world.boss.y) < 1.65) {
-world.boss.hp--; hit = true; spawnExplosion(scene, b.x, b.y, 6, 0xff0055);
-const pct = Math.max(0, (world.boss.hp / world.boss.maxHp) * 100);
-document.getElementById('boss-bar').style.width = pct + '%';
-if (world.boss.hp <= 0) {
-synth.sfxExplosion(); spawnExplosion(scene, world.boss.x, world.boss.y + 1, 50, 0xff2200);
-scene.remove(world.boss.mesh); world.boss = null;
-player.score += 5000; updateHUD();
-setTimeout(() => onEndGame(true), 1200);
-}
-}
-}
-if (hit || b.life <= 0) { scene.remove(b.mesh); world.bullets.splice(i, 1); }
-}
-for (let i = world.particles.length - 1; i >= 0; i--) {
-const p = world.particles[i];
-p.vy -= 18 * dt;
-p.mesh.position.x += p.vx * dt;
-p.mesh.position.y += p.vy * dt;
-p.mesh.position.z += p.vz * dt;
-p.life -= dt;
-if (p.life <= 0) { scene.remove(p.mesh); world.particles.splice(i, 1); }
-}
+    updateWorldCombat(dt, scene, player, updateHUD, damagePlayer, onEndGame);
 }
